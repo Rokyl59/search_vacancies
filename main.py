@@ -2,28 +2,19 @@ import os
 import requests
 from terminaltables import AsciiTable
 from dotenv import load_dotenv
+from salary_utils import predict_rub_salary
 
 
 SUPERJOB_TOWN_CODE = 4
 SUPERJOB_CATALOGUE_ID = 48
 
-VACANCIES_PER_PAGE = 100
+VACANCIES_PER_PAGE = 50
 
 HH_AREA_CODE = '1'
 SEARCH_PERIOD_DAYS = '30'
 
 SALARY_INCREASE_FACTOR = 1.2
 SALARY_DECREASE_FACTOR = 0.8
-
-
-def predict_rub_salary_for_superJob(salary_from, salary_to):
-    if salary_from and salary_to:
-        return (salary_from + salary_to) / 2
-    elif salary_from:
-        return salary_from * SALARY_INCREASE_FACTOR
-    elif salary_to:
-        return salary_to * SALARY_DECREASE_FACTOR
-    return None
 
 
 def get_average_salary_sj(language, headers):
@@ -57,9 +48,11 @@ def get_average_salary_sj(language, headers):
 
             salary_from = vacancy.get('payment_from')
             salary_to = vacancy.get('payment_to')
-            predicted_salary = predict_rub_salary_for_superJob(
+            predicted_salary = predict_rub_salary(
                 salary_from,
-                salary_to
+                salary_to,
+                SALARY_INCREASE_FACTOR,
+                SALARY_DECREASE_FACTOR
             )
 
             if not predicted_salary:
@@ -77,19 +70,6 @@ def get_average_salary_sj(language, headers):
         'vacancies_processed': vacancies_processed,
         'average_salary': int(average_salary)
     }
-
-
-def predict_rub_salary(vacancy):
-    salary_info = vacancy.get('salary')
-    if not salary_info or salary_info.get('currency') != 'RUR':
-        return None
-    if salary_info['from'] and salary_info['to']:
-        return (salary_info['from'] + salary_info['to']) / 2
-    elif salary_info['from']:
-        return salary_info['from'] * SALARY_INCREASE_FACTOR
-    elif salary_info['to']:
-        return salary_info['to'] * SALARY_DECREASE_FACTOR
-    return None
 
 
 def get_vacancies_info_hh(language):
@@ -115,16 +95,30 @@ def get_vacancies_info_hh(language):
         vacancies_processed = 0
         total_salary = 0
         for vacancy in vacancies_page['items']:
-            predicted_salary = predict_rub_salary(vacancy)
-            if predicted_salary:
+            salary_info = vacancy.get('salary')
+            if not salary_info or salary_info.get('currency') != 'RUR':
+                continue
+
+            salary_from = salary_info.get('from')
+            salary_to = salary_info.get('to')
+
+            predicted_salary = predict_rub_salary(
+                salary_from,
+                salary_to,
+                SALARY_INCREASE_FACTOR,
+                SALARY_DECREASE_FACTOR
+            )
+
+            if predicted_salary is not None:
                 total_salary += predicted_salary
                 vacancies_processed += 1
 
         vacancies_summary['vacancies_found'] += vacancies_page['found']
         vacancies_summary['vacancies_processed'] += vacancies_processed
-        old_total = vacancies_summary['average_salary'] * (vacancies_summary['vacancies_processed'] - vacancies_processed)
-        new_total = old_total + total_salary
+
         if vacancies_summary['vacancies_processed'] > 0:
+            old_total = vacancies_summary['average_salary'] * (vacancies_summary['vacancies_processed'] - vacancies_processed)
+            new_total = old_total + total_salary
             vacancies_summary['average_salary'] = int(new_total / vacancies_summary['vacancies_processed'])
 
         pages_number = vacancies_page['pages']
