@@ -72,7 +72,7 @@ def get_average_salary_sj(language, headers):
     }
 
 
-def get_vacancies_info_hh(language):
+def fetch_hh_vacancies_summary(language):
     page = 0
     pages_number = 1
     vacancies_summary = {
@@ -176,7 +176,7 @@ if __name__ == "__main__":
 
     hh_statistics = {}
     for language in languages:
-        hh_statistics[language] = get_vacancies_info_hh(language)
+        hh_statistics[language] = fetch_hh_vacancies_summary(language)
 
     print_statistics_table(
         hh_statistics,
