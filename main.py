@@ -47,9 +47,9 @@ def get_average_salary_sj(language, headers):
             params=params
         )
         response.raise_for_status()
-        data = response.json()
-        vacancies = data.get('objects')
-        more_pages = data.get('more')
+        api_response_data = response.json()
+        vacancies = api_response_data.get('objects')
+        more_pages = api_response_data.get('more')
 
         for vacancy in vacancies:
             if vacancy.get('currency') == 'rub':
@@ -90,7 +90,7 @@ def predict_rub_salary(vacancy):
 def get_vacancies_info_hh(language):
     page = 0
     pages_number = 1
-    vacancies_info = {
+    vacancies_summary = {
         'vacancies_found': 0,
         'vacancies_processed': 0,
         'average_salary': 0
@@ -115,16 +115,16 @@ def get_vacancies_info_hh(language):
                 total_salary += predicted_salary
                 vacancies_processed += 1
 
-        vacancies_info['vacancies_found'] += vacancies_page['found']
-        vacancies_info['vacancies_processed'] += vacancies_processed
-        old_total = vacancies_info['average_salary'] * (vacancies_info['vacancies_processed'] - vacancies_processed)
+        vacancies_summary['vacancies_found'] += vacancies_page['found']
+        vacancies_summary['vacancies_processed'] += vacancies_processed
+        old_total = vacancies_summary['average_salary'] * (vacancies_summary['vacancies_processed'] - vacancies_processed)
         new_total = old_total + total_salary
-        if vacancies_info['vacancies_processed'] > 0:
-            vacancies_info['average_salary'] = int(new_total / vacancies_info['vacancies_processed'])
+        if vacancies_summary['vacancies_processed'] > 0:
+            vacancies_summary['average_salary'] = int(new_total / vacancies_summary['vacancies_processed'])
 
         pages_number = vacancies_page['pages']
         page += 1
-    return vacancies_info
+    return vacancies_summary
 
 
 def print_statistics_table(statistics, source_name):
