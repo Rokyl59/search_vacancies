@@ -118,7 +118,7 @@ def fetch_hh_vacancies_summary(language):
             'vacancies_processed': vacancies_summary['vacancies_processed'] + vacancies_processed,
         })
 
-        if vacancies_summary['vacancies_processed'] > 0:
+        if vacancies_summary['vacancies_processed']:
             old_total = vacancies_summary['average_salary'] * (
                 vacancies_summary['vacancies_processed'] - vacancies_processed
             )
