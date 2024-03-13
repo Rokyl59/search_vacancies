@@ -52,16 +52,21 @@ def get_average_salary_sj(language, headers):
         more_pages = api_response_data.get('more')
 
         for vacancy in vacancies:
-            if vacancy.get('currency') == 'rub':
-                salary_from = vacancy.get('payment_from')
-                salary_to = vacancy.get('payment_to')
-                predicted_salary = predict_rub_salary_for_superJob(
-                    salary_from,
-                    salary_to
-                )
-                if predicted_salary:
-                    vacancies_processed += 1
-                    total_salary += predicted_salary
+            if vacancy.get('currency') != 'rub':
+                continue
+
+            salary_from = vacancy.get('payment_from')
+            salary_to = vacancy.get('payment_to')
+            predicted_salary = predict_rub_salary_for_superJob(
+                salary_from,
+                salary_to
+            )
+
+            if not predicted_salary:
+                continue
+
+            vacancies_processed += 1
+            total_salary += predicted_salary
 
         vacancies_found += len(vacancies)
         page += 1
