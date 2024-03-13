@@ -80,6 +80,7 @@ def fetch_hh_vacancies_summary(language):
         'vacancies_processed': 0,
         'average_salary': 0
     }
+
     while page < pages_number:
         params = {
             'text': f'программист {language}',
@@ -101,7 +102,6 @@ def fetch_hh_vacancies_summary(language):
 
             salary_from = salary_info.get('from')
             salary_to = salary_info.get('to')
-
             predicted_salary = predict_rub_salary(
                 salary_from,
                 salary_to,
@@ -113,16 +113,23 @@ def fetch_hh_vacancies_summary(language):
                 total_salary += predicted_salary
                 vacancies_processed += 1
 
-        vacancies_summary['vacancies_found'] += vacancies_page['found']
-        vacancies_summary['vacancies_processed'] += vacancies_processed
+        vacancies_summary.update({
+            'vacancies_found': vacancies_summary['vacancies_found'] + vacancies_page['found'],
+            'vacancies_processed': vacancies_summary['vacancies_processed'] + vacancies_processed,
+        })
 
         if vacancies_summary['vacancies_processed'] > 0:
-            old_total = vacancies_summary['average_salary'] * (vacancies_summary['vacancies_processed'] - vacancies_processed)
+            old_total = vacancies_summary['average_salary'] * (
+                vacancies_summary['vacancies_processed'] - vacancies_processed
+            )
             new_total = old_total + total_salary
-            vacancies_summary['average_salary'] = int(new_total / vacancies_summary['vacancies_processed'])
+            vacancies_summary['average_salary'] = int(
+                new_total / vacancies_summary['vacancies_processed']
+            )
 
         pages_number = vacancies_page['pages']
         page += 1
+
     return vacancies_summary
 
 
