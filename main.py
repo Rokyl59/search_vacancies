@@ -4,13 +4,25 @@ from terminaltables import AsciiTable
 from dotenv import load_dotenv
 
 
+SUPERJOB_TOWN_CODE = 4
+SUPERJOB_CATALOGUE_ID = 48
+
+VACANCIES_PER_PAGE = 100
+
+HH_AREA_CODE = '1'
+SEARCH_PERIOD_DAYS = '30'
+
+SALARY_INCREASE_FACTOR = 1.2
+SALARY_DECREASE_FACTOR = 0.8
+
+
 def predict_rub_salary_for_superJob(salary_from, salary_to):
     if salary_from and salary_to:
         return (salary_from + salary_to) / 2
     elif salary_from:
-        return salary_from * 1.2
+        return salary_from * SALARY_INCREASE_FACTOR
     elif salary_to:
-        return salary_to * 0.8
+        return salary_to * SALARY_DECREASE_FACTOR
     return None
 
 
@@ -23,11 +35,11 @@ def get_average_salary_sj(language, headers):
 
     while more_pages:
         params = {
-            'town': 4,
-            'catalogues': 48,
+            'town': SUPERJOB_TOWN_CODE,
+            'catalogues': SUPERJOB_CATALOGUE_ID,
             'keyword': f'Программист {language}',
             'page': page,
-            'count': 100
+            'count': VACANCIES_PER_PAGE
         }
         response = requests.get(
             'https://api.superjob.ru/2.0/vacancies/',
@@ -69,9 +81,9 @@ def predict_rub_salary(vacancy):
     if salary_info['from'] and salary_info['to']:
         return (salary_info['from'] + salary_info['to']) / 2
     elif salary_info['from']:
-        return salary_info['from'] * 1.2
+        return salary_info['from'] * SALARY_INCREASE_FACTOR
     elif salary_info['to']:
-        return salary_info['to'] * 0.8
+        return salary_info['to'] * SALARY_DECREASE_FACTOR
     return None
 
 
@@ -86,10 +98,10 @@ def get_vacancies_info_hh(language):
     while page < pages_number:
         params = {
             'text': f'программист {language}',
-            'area': '1',
-            'period': '30',
+            'area': HH_AREA_CODE,
+            'period': SEARCH_PERIOD_DAYS,
             'page': page,
-            'per_page': 100
+            'per_page': VACANCIES_PER_PAGE
         }
         response = requests.get('https://api.hh.ru/vacancies', params=params)
         response.raise_for_status()
