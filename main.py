@@ -68,7 +68,7 @@ def get_average_salary_sj(language, headers):
             vacancies_processed += 1
             total_salary += predicted_salary
 
-        vacancies_found += len(vacancies)
+        vacancies_found = api_response_data.get('total')
         page += 1
 
     average_salary = total_salary / vacancies_processed if vacancies_processed else 0
