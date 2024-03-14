@@ -8,7 +8,7 @@ from salary_utils import predict_rub_salary
 SUPERJOB_TOWN_CODE = 4
 SUPERJOB_CATALOGUE_ID = 48
 
-VACANCIES_PER_PAGE = 50
+VACANCIES_PER_PAGE = 100
 
 HH_AREA_CODE = '1'
 SEARCH_PERIOD_DAYS = '30'
@@ -75,11 +75,8 @@ def get_average_salary_sj(language, headers):
 def fetch_hh_vacancies_summary(language):
     page = 0
     pages_number = 1
-    vacancies_summary = {
-        'vacancies_found': 0,
-        'vacancies_processed': 0,
-        'average_salary': 0
-    }
+    total_salary = 0
+    vacancies_processed = 0
 
     while page < pages_number:
         params = {
@@ -93,8 +90,6 @@ def fetch_hh_vacancies_summary(language):
         response.raise_for_status()
         vacancies_page = response.json()
 
-        vacancies_processed = 0
-        total_salary = 0
         for vacancy in vacancies_page['items']:
             salary_info = vacancy.get('salary')
             if not salary_info or salary_info.get('currency') != 'RUR':
@@ -109,28 +104,19 @@ def fetch_hh_vacancies_summary(language):
                 SALARY_DECREASE_FACTOR
             )
 
-            if predicted_salary is not None:
+            if predicted_salary:
                 total_salary += predicted_salary
                 vacancies_processed += 1
-
-        vacancies_summary.update({
-            'vacancies_found': vacancies_summary['vacancies_found'] + vacancies_page['found'],
-            'vacancies_processed': vacancies_summary['vacancies_processed'] + vacancies_processed,
-        })
-
-        if vacancies_summary['vacancies_processed']:
-            old_total = vacancies_summary['average_salary'] * (
-                vacancies_summary['vacancies_processed'] - vacancies_processed
-            )
-            new_total = old_total + total_salary
-            vacancies_summary['average_salary'] = int(
-                new_total / vacancies_summary['vacancies_processed']
-            )
 
         pages_number = vacancies_page['pages']
         page += 1
 
-    return vacancies_summary
+    average_salary = int(total_salary / vacancies_processed) if vacancies_processed else 0
+    return {
+        'vacancies_found': vacancies_page['found'],
+        'vacancies_processed': vacancies_processed,
+        'average_salary': average_salary
+    }
 
 
 def print_statistics_table(statistics, source_name):
