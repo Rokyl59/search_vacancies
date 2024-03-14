@@ -2,7 +2,6 @@ import os
 import requests
 from terminaltables import AsciiTable
 from dotenv import load_dotenv
-from salary_utils import predict_rub_salary
 
 
 SUPERJOB_TOWN_CODE = 4
@@ -15,6 +14,21 @@ SEARCH_PERIOD_DAYS = '30'
 
 SALARY_INCREASE_FACTOR = 1.2
 SALARY_DECREASE_FACTOR = 0.8
+
+
+def predict_rub_salary(
+        salary_from,
+        salary_to,
+        increase_factor=1.2,
+        decrease_factor=0.8
+        ):
+    if salary_from and salary_to:
+        return (salary_from + salary_to) / 2
+    elif salary_from:
+        return salary_from * increase_factor
+    elif salary_to:
+        return salary_to * decrease_factor
+    return None
 
 
 def get_average_salary_sj(language, headers):
