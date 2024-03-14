@@ -38,9 +38,9 @@ def get_average_salary_sj(language, headers):
             params=params
         )
         response.raise_for_status()
-        api_response_data = response.json()
-        vacancies = api_response_data.get('objects')
-        more_pages = api_response_data.get('more')
+        response_vacancies = response.json()
+        vacancies = response_vacancies.get('objects')
+        more_pages = response_vacancies.get('more')
 
         for vacancy in vacancies:
             if vacancy.get('currency') != 'rub':
@@ -61,7 +61,7 @@ def get_average_salary_sj(language, headers):
             vacancies_processed += 1
             total_salary += predicted_salary
 
-        vacancies_found = api_response_data.get('total')
+        vacancies_found = response_vacancies.get('total')
         page += 1
 
     average_salary = total_salary / vacancies_processed if vacancies_processed else 0
@@ -91,12 +91,12 @@ def fetch_hh_vacancies_summary(language):
         vacancies_page = response.json()
 
         for vacancy in vacancies_page['items']:
-            salary_info = vacancy.get('salary')
-            if not salary_info or salary_info.get('currency') != 'RUR':
+            salary_details = vacancy.get('salary')
+            if not salary_details or salary_details.get('currency') != 'RUR':
                 continue
 
-            salary_from = salary_info.get('from')
-            salary_to = salary_info.get('to')
+            salary_from = salary_details.get('from')
+            salary_to = salary_details.get('to')
             predicted_salary = predict_rub_salary(
                 salary_from,
                 salary_to,
